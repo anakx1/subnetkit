@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "subnetkit"
+version = "1.0.0"
+description = "IP and subnet calculator: CIDR, ranges, masks, splitting, and VLSM"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "subnetkit" }]
+keywords = ["ip", "subnet", "cidr", "netmask", "ipv4", "ipv6", "vlsm"]
+classifiers = [
+  "Environment :: Console",
+  "Programming Language :: Python :: 3",
+  "Topic :: System :: Networking",
+]
+
+[project.scripts]
+subnetkit = "subnetkit.cli:main"
+
+[tool.setuptools]
+packages = ["subnetkit"]
+
+[tool.setuptools.package-data]
+subnetkit = ["static/*"]

@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>subnetkit — IP &amp; subnet calculator</title>
+  <meta name="description" content="Offline IP and subnet calculator: CIDR, ranges, netmasks, subnet splitting, and VLSM for IPv4 and IPv6.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b1220'/%3E%3Cpath d='M16 22h32M16 32h32M16 42h32' stroke='%235eead4' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='24' cy='22' r='4' fill='%2338bdf8'/%3E%3Ccircle cx='40' cy='32' r='4' fill='%23a78bfa'/%3E%3Ccircle cx='28' cy='42' r='4' fill='%235eead4'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 64 64" aria-hidden="true">
+        <rect width="64" height="64" rx="14" fill="rgba(94,234,212,.08)" stroke="rgba(94,234,212,.25)"/>
+        <path d="M16 22h32M16 32h32M16 42h32" stroke="#5eead4" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="24" cy="22" r="4" fill="#38bdf8"/>
+        <circle cx="40" cy="32" r="4" fill="#a78bfa"/>
+        <circle cx="28" cy="42" r="4" fill="#5eead4"/>
+      </svg>
+      <div>
+        <h1>subnet<span>kit</span></h1>
+        <p>CIDR · ranges · masks</p>
+      </div>
+    </div>
+    <div class="local-badge"><span class="pulse"></span> runs locally</div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Calculators">
+    <button class="tab active" id="tab-inspect" data-tab="inspect" role="tab" aria-selected="true" aria-controls="panel-inspect">Inspect</button>
+    <button class="tab" id="tab-split" data-tab="split" role="tab" aria-selected="false" aria-controls="panel-split">Split</button>
+    <button class="tab" id="tab-mask" data-tab="mask" role="tab" aria-selected="false" aria-controls="panel-mask">Masks</button>
+    <button class="tab" id="tab-vlsm" data-tab="vlsm" role="tab" aria-selected="false" aria-controls="panel-vlsm">VLSM</button>
+    <button class="tab" id="tab-check" data-tab="check" role="tab" aria-selected="false" aria-controls="panel-check">Check</button>
+  </nav>
+
+  <main>
+    <section class="panel active" id="panel-inspect" role="tabpanel" aria-labelledby="tab-inspect">
+      <div class="card input-card">
+        <label for="inspect-input">IP, CIDR block, or address range</label>
+        <div class="field">
+          <span class="prompt" aria-hidden="true">›</span>
+          <input id="inspect-input" class="mono" type="text" value="192.168.1.10/24" placeholder="192.168.1.10/24" autocomplete="off" autocapitalize="off" spellcheck="false">
+          <button id="inspect-go" class="primary">Calculate</button>
+        </div>
+        <div class="examples">
+          <span>Try</span>
+          <button class="chip" data-example="192.168.1.10/24">192.168.1.10/24</button>
+          <button class="chip" data-example="10.0.0.5 - 10.0.0.42">range</button>
+          <button class="chip" data-example="2001:db8::1/64">IPv6</button>
+          <button class="chip" data-example="172.16.0.0 255.255.240.0">mask pair</button>
+        </div>
+      </div>
+      <div id="inspect-out" class="results" aria-live="polite"></div>
+    </section>
+
+    <section class="panel" id="panel-split" role="tabpanel" aria-labelledby="tab-split" hidden>
+      <div class="card input-card">
+        <div class="form-grid split-grid">
+          <div class="field-group grow">
+            <label for="split-target">Parent network</label>
+            <input id="split-target" class="mono" type="text" value="192.168.1.0/24" placeholder="192.168.1.0/24" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="field-group">
+            <label for="split-mode">Split by</label>
+            <select id="split-mode">
+              <option value="count">Subnet count</option>
+              <option value="prefix">New prefix</option>
+            </select>
+          </div>
+          <div class="field-group narrow">
+            <label for="split-value" id="split-value-label">Count</label>
+            <input id="split-value" class="mono" type="number" value="4" min="1">
+          </div>
+        </div>
+        <div class="actions">
+          <button id="split-go" class="primary">Split network</button>
+          <span class="hint">Equal-sized subnets</span>
+        </div>
+      </div>
+      <div id="split-out" class="results" aria-live="polite"></div>
+    </section>
+
+    <section class="panel" id="panel-mask" role="tabpanel" aria-labelledby="tab-mask" hidden>
+      <div class="card input-card">
+        <div class="form-grid mask-grid">
+          <div class="field-group grow">
+            <label for="mask-input">Netmask, prefix, or wildcard</label>
+            <input id="mask-input" class="mono" type="text" value="255.255.255.192" placeholder="255.255.255.192 or /26" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="field-group narrow">
+            <label for="mask-version">For bare prefixes</label>
+            <select id="mask-version">
+              <option value="4">IPv4</option>
+              <option value="6">IPv6</option>
+            </select>
+          </div>
+        </div>
+        <div class="examples">
+          <span>Try</span>
+          <button class="chip" data-mask="255.255.255.0">255.255.255.0</button>
+          <button class="chip" data-mask="255.255.255.248">/29 mask</button>
+          <button class="chip" data-mask="0.0.0.255">wildcard</button>
+          <button class="chip" data-mask="64" data-version="6">IPv6 /64</button>
+        </div>
+        <div class="actions">
+          <button id="mask-go" class="primary">Convert mask</button>
+        </div>
+      </div>
+      <div id="mask-out" class="results" aria-live="polite"></div>
+    </section>
+
+    <section class="panel" id="panel-vlsm" role="tabpanel" aria-labelledby="tab-vlsm" hidden>
+      <div class="card input-card">
+        <div class="field-group">
+          <label for="vlsm-target">Parent network</label>
+          <input id="vlsm-target" class="mono" type="text" value="192.168.1.0/24" placeholder="192.168.1.0/24" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="field-group">
+          <label for="vlsm-reqs">Requirements <span class="label-note">one per line — name:hosts</span></label>
+          <textarea id="vlsm-reqs" class="mono" rows="5" spellcheck="false">LAN:100
+WAN:2
+Guest:20</textarea>
+        </div>
+        <div class="actions">
+          <button id="vlsm-go" class="primary">Allocate subnets</button>
+          <span class="hint">Largest first, /31 for point-to-point</span>
+        </div>
+      </div>
+      <div id="vlsm-out" class="results" aria-live="polite"></div>
+    </section>
+
+    <section class="panel" id="panel-check" role="tabpanel" aria-labelledby="tab-check" hidden>
+      <div class="card input-card">
+        <div class="field-group">
+          <label for="check-target">Base network</label>
+          <input id="check-target" class="mono" type="text" value="10.0.0.0/8" placeholder="10.0.0.0/8" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="field-group">
+          <label for="check-others">IPs or networks to check <span class="label-note">one per line or comma separated</span></label>
+          <textarea id="check-others" class="mono" rows="4" spellcheck="false">10.1.2.3
+192.168.0.0/16
+172.16.0.0/12</textarea>
+        </div>
+        <div class="actions">
+          <button id="check-go" class="primary">Check containment</button>
+        </div>
+      </div>
+      <div id="check-out" class="results" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer>
+    <span>subnetkit <span class="mono">1.0</span></span>
+    <span>IPv4 + IPv6 · RFC 3021 aware · no network calls</span>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
