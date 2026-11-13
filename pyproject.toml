@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "subnetkit"
-version = "1.0.0"
-description = "IP and subnet calculator: CIDR, ranges, masks, splitting, and VLSM"
+dynamic = ["version"]
+description = "IP and subnet calculator: CIDR, ranges, masks, VLSM, set operations, and plans"
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
@@ -20,8 +20,43 @@ classifiers = [
 [project.scripts]
 subnetkit = "subnetkit.cli:main"
 
+[project.optional-dependencies]
+completions = ["argcomplete>=2.0,<4"]
+dev = [
+  "argcomplete>=2.0,<4",
+  "hypothesis>=6.98,<7",
+  "mypy>=1.11,<2",
+  "ruff>=0.8,<1",
+]
+
 [tool.setuptools]
 packages = ["subnetkit"]
 
+[tool.setuptools.dynamic]
+version = {attr = "subnetkit.__version__"}
+
 [tool.setuptools.package-data]
-subnetkit = ["static/*"]
+subnetkit = ["static/*", "py.typed"]
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+exclude = ["subnetkit/static"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "C4"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.9"
+files = ["subnetkit"]
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+show_error_codes = true
+exclude = ["subnetkit/static"]
+
+[[tool.mypy.overrides]]
+module = ["argcomplete", "argcomplete.*"]
+ignore_missing_imports = true

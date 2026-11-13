@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="dark">
+  <meta name="color-scheme" content="dark light">
   <title>subnetkit — IP &amp; subnet calculator</title>
   <meta name="description" content="Offline IP and subnet calculator: CIDR, ranges, netmasks, subnet splitting, and VLSM for IPv4 and IPv6.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b1220'/%3E%3Cpath d='M16 22h32M16 32h32M16 42h32' stroke='%235eead4' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='24' cy='22' r='4' fill='%2338bdf8'/%3E%3Ccircle cx='40' cy='32' r='4' fill='%23a78bfa'/%3E%3Ccircle cx='28' cy='42' r='4' fill='%235eead4'/%3E%3C/svg%3E">
@@ -26,7 +26,13 @@
         <p>CIDR · ranges · masks</p>
       </div>
     </div>
-    <div class="local-badge"><span class="pulse"></span> runs locally</div>
+    <div class="header-tools">
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to light theme">
+        <span id="theme-icon" class="theme-toggle-icon" aria-hidden="true">☾</span>
+        <span id="theme-label" class="theme-toggle-label">Dark</span>
+      </button>
+      <div class="local-badge"><span class="pulse"></span> runs locally</div>
+    </div>
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Calculators">
@@ -35,6 +41,7 @@
     <button class="tab" id="tab-mask" data-tab="mask" role="tab" aria-selected="false" aria-controls="panel-mask">Masks</button>
     <button class="tab" id="tab-vlsm" data-tab="vlsm" role="tab" aria-selected="false" aria-controls="panel-vlsm">VLSM</button>
     <button class="tab" id="tab-check" data-tab="check" role="tab" aria-selected="false" aria-controls="panel-check">Check</button>
+    <button class="tab" id="tab-plan" data-tab="plan" role="tab" aria-selected="false" aria-controls="panel-plan">Planner</button>
   </nav>
 
   <main>
@@ -125,6 +132,14 @@
 WAN:2
 Guest:20</textarea>
         </div>
+        <div class="vlsm-options">
+          <label class="check"><input id="vlsm-classic" type="checkbox"> Classic IPv4 subnets <span class="label-note">(/30 for 1–2 hosts)</span></label>
+          <label class="check"><input id="vlsm-gateway" type="checkbox"> Reserve one gateway address</label>
+          <div class="field-group growth">
+            <label for="vlsm-growth">Growth %</label>
+            <input id="vlsm-growth" type="number" min="0" step="1" value="0">
+          </div>
+        </div>
         <div class="actions">
           <button id="vlsm-go" class="primary">Allocate subnets</button>
           <span class="hint">Largest first, /31 for point-to-point</span>
@@ -150,6 +165,69 @@ Guest:20</textarea>
         </div>
       </div>
       <div id="check-out" class="results" aria-live="polite"></div>
+    </section>
+
+    <section class="panel" id="panel-plan" role="tabpanel" aria-labelledby="tab-plan" hidden>
+      <div class="card input-card">
+        <div class="form-grid plan-init-grid">
+          <div class="field-group grow">
+            <label for="plan-parent">Plan parent network</label>
+            <input id="plan-parent" class="mono" type="text" value="10.0.0.0/16" placeholder="10.0.0.0/16" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="actions plan-actions">
+            <button id="plan-new" class="primary">New plan</button>
+            <span class="hint">Kept in this URL · share it</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card input-card">
+        <div class="form-grid plan-add-grid">
+          <div class="field-group grow">
+            <label for="plan-name">Subnet name</label>
+            <input id="plan-name" type="text" value="LAN" placeholder="LAN" autocomplete="off">
+          </div>
+          <div class="field-group narrow">
+            <label for="plan-hosts">Hosts</label>
+            <input id="plan-hosts" class="mono" type="number" min="1" value="100">
+          </div>
+          <div class="field-group narrow">
+            <label for="plan-vlan">VLAN <span class="label-note">optional</span></label>
+            <input id="plan-vlan" class="mono" type="number" min="0" placeholder="10">
+          </div>
+        </div>
+        <div class="vlsm-options">
+          <label class="check"><input id="plan-classic" type="checkbox"> Classic IPv4 subnets <span class="label-note">(/30 for 1–2 hosts)</span></label>
+          <label class="check"><input id="plan-gateway" type="checkbox"> Reserve one gateway address</label>
+        </div>
+        <div class="actions">
+          <button id="plan-add" class="primary">Add subnet</button>
+          <button id="plan-validate" class="ghost" type="button">Validate</button>
+          <button id="plan-free" class="ghost" type="button">Free space</button>
+          <span id="plan-status" class="hint">Create a plan to begin.</span>
+        </div>
+      </div>
+
+      <div id="plan-out" class="results" aria-live="polite"></div>
+
+      <div class="card input-card">
+        <div class="form-grid plan-export-grid">
+          <div class="field-group grow">
+            <label for="plan-export-format">Export format</label>
+            <select id="plan-export-format">
+              <option value="csv">CSV</option>
+              <option value="json">JSON</option>
+              <option value="cisco">Cisco IOS</option>
+              <option value="iproute2">iproute2</option>
+              <option value="terraform">Terraform</option>
+            </select>
+          </div>
+          <div class="actions plan-actions">
+            <button id="plan-export" class="ghost" type="button">Export plan</button>
+          </div>
+        </div>
+        <div id="plan-export-out" class="results"></div>
+      </div>
     </section>
   </main>
 

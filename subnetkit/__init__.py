@@ -7,8 +7,11 @@ Public API:
     mask_info(mask)        prefix/netmask/wildcard conversion
     vlsm(parent, reqs)     variable-length subnet allocation
     check_relations(...)   containment and overlap checks
+
+Persistent plan helpers live in :mod:`subnetkit.plan`.
 """
 
+from . import plan  # noqa: F401
 from .core import (  # noqa: F401
     InputError,
     check_relations,
